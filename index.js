@@ -32,6 +32,11 @@ const isValidUrl = (urlString) => {
 const urlIsNew = async (originalUrl) => {
   return !(await Url.exists({ originalUrl: originalUrl }));
 };
+
+const shortUrlIsValid = async (shortUrl) => {
+  return await Url.exists({ shortUrl: shortUrl });
+};
+
 //add new url to DB and return its short url
 const getNewShortUrl = async (originalUrl) => {
   let newShortUrl = (await Url.find({})).length;
@@ -82,10 +87,11 @@ app.post("/api/shorturl", async function (req, res) {
 
 app.get("/api/shorturl/:shortUrl?", async function (req, res) {
   if (req.params.shortUrl === undefined) {
-    //res.json({ error: "No short URL found for the given input" });
     res.json({ error: "No short URL provided" });
-  } else {
+  } else if (await shortUrlIsValid(req.params.shortUrl)) {
     res.redirect(await getOriginalUrl(req.params.shortUrl));
+  } else {
+    res.json({ error: "No short URL found for the given input" });
   }
 });
 
